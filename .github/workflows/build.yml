@@ -3,22 +3,65 @@ name: build
 on:
   push:
     branches: [main]
+    tags: ['v*']        # pushing a version tag cuts a release
   workflow_dispatch:
+
+permissions:
+  contents: write       # needed to create the GitHub Release
 
 jobs:
   android:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
-      # Inject the backend URL from a repo secret into .env before building.
+
+      # Backend URL comes from a repo secret, written into .env at build time.
       - name: Write .env
         run: echo "BACKEND_URL=${{ secrets.BACKEND_URL }}" > .env
+
+      # Decode the release keystore from a secret. The gradle config picks these
+      # env vars up (ANDROID_KEYSTORE_PATH etc.) and signs the release build.
+      - name: Restore release keystore
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
+
       - run: flutter pub get
-      - run: flutter build apk --release --dart-define-from-file=.env
+
+      - name: Build release APK
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/release.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: flutter build apk --release --dart-define-from-file=.env
+
+      - name: Name the APK after the version
+        id: rename
+        run: |
+          mkdir -p dist
+          cp build/app/outputs/flutter-apk/app-release.apk dist/openstrap-edge-${GITHUB_REF_NAME}.apk
+          echo "apk=dist/openstrap-edge-${GITHUB_REF_NAME}.apk" >> "$GITHUB_OUTPUT"
+
       - uses: actions/upload-artifact@v4
         with:
-          name: edge-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: openstrap-edge-apk
+          path: ${{ steps.rename.outputs.apk }}
+
+      # On a version tag, publish a Release with the signed APK attached so people
+      # download a real .apk, not a zipped CI artifact.
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.rename.outputs.apk }}
+          generate_release_notes: true

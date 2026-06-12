@@ -53,3 +53,8 @@ app.*.map.json
 *.sql
 *.dump
 assets/**/*.gz
+
+# android release signing (never commit)
+android/key.properties
+*.jks
+*.keystore
