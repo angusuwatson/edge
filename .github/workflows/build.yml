@@ -2,8 +2,7 @@ name: build
 
 on:
   push:
-    tags: ['v*']        # pushing a version tag cuts a release
-
+    tags: ['v*']        # the only trigger: pushing a version tag cuts a release
 
 permissions:
   contents: write       # needed to create the GitHub Release
@@ -56,10 +55,9 @@ jobs:
           name: openstrap-edge-apk
           path: ${{ steps.rename.outputs.apk }}
 
-      # On a version tag, publish a Release with the signed APK attached so people
-      # download a real .apk, not a zipped CI artifact.
+      # Publish a Release with the signed APK attached so people download a real
+      # .apk, not a zipped CI artifact.
       - name: Publish release
-        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           files: ${{ steps.rename.outputs.apk }}
