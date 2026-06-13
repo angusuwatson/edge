@@ -38,8 +38,11 @@ class TodayData {
   final Map<String, dynamic>? _stress;
   final Map<String, dynamic>? _nocturnal;
   final Map<String, dynamic>? _resp;
+  final Map<String, dynamic>? _hrv;
+  final Map<String, dynamic>? _skinTemp;
+  final Map<String, dynamic>? _spo2;
   TodayData._(this._daily, this._sleep, this._coach, this._stress,
-      this._nocturnal, this._resp);
+      this._nocturnal, this._resp, this._hrv, this._skinTemp, this._spo2);
 
   factory TodayData.fromJson(Object? json) {
     final row = json is Map ? json.cast<String, dynamic>() : const {};
@@ -48,8 +51,25 @@ class TodayData {
     final daily = sub('daily') ?? const <String, dynamic>{};
     final sleep = sub('sleep') ?? const <String, dynamic>{};
     return TodayData._(daily, sleep, sub('coach'), sub('stress'),
-        sub('nocturnal'), sub('resp'));
+        sub('nocturnal'), sub('resp'), sub('hrv'), sub('skin_temp'), sub('spo2'));
   }
+
+  /// Nocturnal HRV (RMSSD, ms) — measured from beat-to-beat intervals. Null until
+  /// a night's worth of RR has been captured.
+  ({double rmssd, double confidence})? get hrv {
+    final h = _hrv;
+    if (h == null || h['rmssd'] == null) return null;
+    return (
+      rmssd: (h['rmssd'] as num).toDouble(),
+      confidence: (h['confidence'] as num?)?.toDouble() ?? 0,
+    );
+  }
+
+  /// Skin-temp deviation vs your baseline (relative, raw units), or null.
+  double? get skinTempIdx => (_skinTemp?['value'] as num?)?.toDouble();
+
+  /// Blood-oxygen deviation vs your baseline (relative, raw units), or null.
+  double? get spo2Idx => (_spo2?['value'] as num?)?.toDouble();
 
   /// The deterministic coach output (plan + strain target + contributors), or null.
   CoachData? get coach => _coach == null ? null : CoachData(_coach);

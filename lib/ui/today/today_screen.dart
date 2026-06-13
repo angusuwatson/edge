@@ -267,6 +267,10 @@ class _TodayScreenState extends State<TodayScreen>
               : null),
       const SizedBox(height: Sp.x4),
 
+      // At-a-glance gauges: Strain / Sleep / HRV alongside the readiness hero.
+      _dashboard(t),
+      const SizedBox(height: Sp.x4),
+
       // Coach — Today's Plan (server-computed).
       if (coach != null) ...[
         _coachCard(coach),
@@ -349,6 +353,31 @@ class _TodayScreenState extends State<TodayScreen>
           onTap: () => _push(StressScreen(date: date)),
         ),
         _bodyOverTimeTile(),
+      ),
+      const SizedBox(height: Sp.x3),
+
+      // HRV (measured, beat-to-beat) + relative blood-oxygen. New: HRV is the real
+      // one now that we decode R-R intervals; SpO₂ is a relative index (raw, beta).
+      _statRow(
+        StatTile(
+          icon: Ic.pulse,
+          label: 'HRV (RMSSD)',
+          value: t.hrv == null ? null : t.hrv!.rmssd.toStringAsFixed(0),
+          unit: 'ms',
+          accent: AppColors.good,
+          confidence: t.hrv?.confidence,
+          tag: const Tag('beta', color: AppColors.coral),
+        ),
+        StatTile(
+          icon: Ic.heart,
+          label: 'Blood O₂ (rel.)',
+          value: t.spo2Idx == null
+              ? null
+              : (t.spo2Idx! >= 0 ? '+' : '') + t.spo2Idx!.toStringAsFixed(0),
+          unit: 'Δ',
+          accent: AppColors.coralDeep,
+          tag: const Tag('beta', color: AppColors.coral),
+        ),
       ),
       const SizedBox(height: Sp.x4),
 
@@ -435,6 +464,57 @@ class _TodayScreenState extends State<TodayScreen>
             Text('+${coach.plan.length - 1} more in your plan',
                 style: AppText.captionMuted),
           ],
+        ],
+      ),
+    );
+  }
+
+  /// Three small gauges under the hero — the at-a-glance trio.
+  Widget _dashboard(TodayData t) {
+    final strainT = t.strain.isEmpty ? double.nan : t.strain.normalized(21);
+    final need = t.sleepNeed.isEmpty ? 480.0 : t.sleepNeed.value!;
+    final sleepT = t.sleepDuration.isEmpty
+        ? double.nan
+        : (t.sleepDuration.value! / need).clamp(0.0, 1.0).toDouble();
+    final hrv = t.hrv;
+    final hrvT = hrv == null ? double.nan : (hrv.rmssd / 150).clamp(0.0, 1.0).toDouble();
+    return ProCard(
+      child: Row(
+        children: [
+          _gauge('STRAIN', t.strain.isEmpty ? null : t.strain.value!.toStringAsFixed(1),
+              null, strainT, AppColors.coral),
+          _gauge('SLEEP', t.sleepDuration.isEmpty ? null : (t.sleepDuration.value! / 60).toStringAsFixed(1),
+              'h', sleepT, AppColors.loadDetraining),
+          _gauge('HRV', hrv == null ? null : hrv.rmssd.toStringAsFixed(0),
+              'ms', hrvT, AppColors.good),
+        ],
+      ),
+    );
+  }
+
+  Widget _gauge(String label, String? value, String? unit, double t, Color color) {
+    return Expanded(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          RingStat(
+            t: t,
+            color: color,
+            size: 80,
+            stroke: 8,
+            center: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(value ?? '—',
+                    style: AppText.metricSm
+                        .copyWith(color: value == null ? AppColors.inkMuted : color)),
+                if (unit != null && value != null)
+                  Text(unit, style: AppText.overline),
+              ],
+            ),
+          ),
+          const SizedBox(height: Sp.x2),
+          Text(label, style: AppText.overline),
         ],
       ),
     );
