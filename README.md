@@ -29,6 +29,24 @@ official WHOOP app. It might push a firmware update, and that could change or br
 events and records this depends on. I've only tested on WHOOP 4.0 as it ships today. Pick
 one app and stick with it.
 
+## Screens
+
+| | | |
+|:--:|:--:|:--:|
+| <img src="screenshots/today.png" width="230"><br>**Today** — readiness up top, then the Strain / Sleep / HRV gauges and your plan for the day. | <img src="screenshots/recovery.png" width="230"><br>**Recovery** — the readiness number broken down into what actually shaped it (resting HR, sleep, consistency). | <img src="screenshots/sleep.png" width="230"><br>**Sleep** — time asleep vs. need, a stage estimate, efficiency, debt, and nocturnal heart. |
+| <img src="screenshots/activity.png" width="230"><br>**Activity** — day strain, time in HR zones, training load, and auto-detected workouts. | <img src="screenshots/strain.png" width="230"><br>**Strain detail** — how strain built through the day, zone breakdown, and HR highs/lows. | <img src="screenshots/stats.png" width="230"><br>**Stats** — week / month / 3-month trends for strain, recovery, resting HR, sleep, and wear. |
+| <img src="screenshots/coach.png" width="230"><br>**Coach** — a deterministic plan: a strain target and a few ranked, plain-English suggestions. | <img src="screenshots/today-metrics.png" width="230"><br>**Metrics** — the full tile set: resting HR, calories, steps, wear time, stress, HRV (RMSSD), blood-O₂. | <img src="screenshots/notifications.png" width="230"><br>**Notifications** — server-generated nudges (sleep debt, recovery, milestones), capped so it stays signal. |
+| <img src="screenshots/recap.png" width="230"><br>**Recap** — a shareable weekly card of your numbers. | <img src="screenshots/live-workout.png" width="230"><br>**Live workout** — real-time HR, live strain, calories, and burn rate while you train. | <img src="screenshots/profile.png" width="230"><br>**Profile** — device + wear status, your body metrics, and the self-hosted-backend toggle. |
+
+iOS extras:
+
+| | |
+|:--:|:--:|
+| <img src="screenshots/widget.jpg" width="360"><br>**Home-screen widget** — recovery, strain, and sleep at a glance, self-refreshing. | <img src="screenshots/live-activity.jpg" width="360"><br>**Live Activity** — workout stats on the lock screen and Dynamic Island. |
+
+> Numbers shown are real output from a WHOOP 4.0. HRV and Blood-O₂ are newer and marked
+> beta in-app; everything carries a confidence and estimates are labelled.
+
 ## How it's put together
 
 The flow, top to bottom:
