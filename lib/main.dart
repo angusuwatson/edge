@@ -14,7 +14,9 @@ Future<void> main() async {
   // relaunch this runs too, so a band-triggered wake reaches runHeadlessSync.
   await IosBleRestore.init();
   await WidgetService.init();
-  await NotificationService.instance.init(); // sets up the notif plugin + channel
+  try {
+    await NotificationService.instance.init(); // sets up the notif plugin + channel
+  } catch (_) {} // not critical — the app still works
 
   // Resolve appearance (persisted choice + OS brightness) BEFORE the first frame
   // so login/signup already paint in the right mode (Ember on Paper / Char).
